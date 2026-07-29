@@ -33,8 +33,6 @@ continue: 跳过本层级的本轮循环，开始下轮循环。
 """
 
 
-
-
 # num = 1
 # while num <= 10:
 #     print(f"{num}.Orion.Guan cheer up!")
@@ -115,30 +113,44 @@ continue: 跳过本层级的本轮循环，开始下轮循环。
 
 
 
-#模拟B站用户登录
+# #模拟B站用户登录
+# while True:
+#     #等待用户输入
+#     username = input("请输入用户名:")
+#     passwd = input("请输入密码:")
+#
+#     #对用户名和密码做非空校验
+#     if username == "" or passwd == "":
+#         print("用户名和密码不能为空")
+#         continue   #跳出本轮循环，继续下轮循环
+#
+#     #校验用户名和密码
+#     if username == "admin" and passwd == "Root1213":
+#         print("恭喜登录成功!")
+#         break   #结束本层级的循环
+#
+#     if username == "root" and passwd == "root123":
+#         print("恭喜登录成功!")
+#         break  # 结束本层级的循环
+#
+#     if username == "admin" and passwd == "admin123":
+#         print("恭喜登录成功!")
+#         break  # 结束本层级的循环
+#
+#     print("用户名和密码有误!")
+# else:
+#     print("欢迎进入B站首页~")   #因为登录成功是通过break关键字结束循环的而非正常循环退出，因此此处代码不可达
+
+
+#猜数字小游戏
+import random
+randomNum = random.randint(1,100)  #生成1-100之间的随机整数
 while True:
-    #等待用户输入
-    username = input("请输入用户名:")
-    passwd = input("请输入密码:")
-
-    #对用户名和密码做非空校验
-    if username == "" or passwd == "":
-        print("用户名和密码不能为空")
-        continue   #跳出本轮循环，继续下轮循环
-
-    #校验用户名和密码
-    if username == "admin" and passwd == "Root1213":
-        print("恭喜登录成功!")
-        break   #结束本层级的循环
-
-    if username == "root" and passwd == "root123":
-        print("恭喜登录成功!")
-        break  # 结束本层级的循环
-
-    if username == "admin" and passwd == "admin123":
-        print("恭喜登录成功!")
-        break  # 结束本层级的循环
-
-    print("用户名和密码有误!")
-else:
-    print("欢迎进入B站首页~")   #因为登录成功是通过break关键字结束循环的而非正常循环退出，因此此处代码不可达
+    userNum = int(input("请输入1-100之间的整数:"))
+    if userNum > randomNum:
+        print("猜大了~")
+    elif userNum < randomNum:
+        print("猜小了~")
+    else:
+        print(f"恭喜，猜对了！数字为{randomNum}")
+        break
