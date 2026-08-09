@@ -7,13 +7,13 @@
 !1 = 1
 """
 
-# def getJc(num):
-#     if num == 1:
-#         return 1
-#     return num * getJc(num - 1)
-#
-#
-# print(getJc(10))
+def getJc(num):
+    if num == 1:
+        return 1
+    return num * getJc(num - 1)
+
+
+print(getJc(10))
 
 
 
@@ -25,7 +25,7 @@
 """
 
 
-def getCartAmount(*args, coupon=0.0, score=0, express=0.0):
+def getCartAmount(*args:tuple[str,float|int,int], coupon:float|int=0.0, score:int=0, express:float|int=0.0)->float|int:
     """
     计算购物车结算总金额
     :param args: 各商品信息
