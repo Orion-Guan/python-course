@@ -11,12 +11,41 @@ st.set_page_config(
     menu_items={
     }
 )
+# 设置页面logo
+st.logo(image="💖")
 
 # 设置页面标题
 st.title("AI智能伴侣")
 
+# 存放用户个人信息到session_state中
+if "nick_name" not in st.session_state:
+    st.session_state.nick_name = "农肖福"
+if "nature" not in st.session_state:
+    st.session_state.nature = "阳光开朗大大咧咧，有时候稍微有点俏皮的南方姑娘"
+
+# 显示侧边栏，with是streamlit的上下文管理器，用于控制流式输出
+with st.sidebar:
+    st.subheader("最佳灵魂伴侣")
+    nick_name = st.text_input("昵称:", placeholder="请输入你的昵称", value = st.session_state.nick_name)
+    nature = st.text_area("描述:", placeholder="你的个性描述", value = st.session_state.nature)
+    st.session_state.nick_name = nick_name
+    st.session_state.nature = nature
+
 # 定义AI的角色
-system_role: str = "你是我的可爱贤惠善良开朗有时候又有点犯贱的农肖福女朋友,用中文与我交互."
+system_content: str = f"""
+                        你叫{st.session_state.nick_name}，现在是用户的真实伴侣，请完全代入伴侣角色。规则：
+                        1. 每次只回1条消息
+                        2. 禁止任何场景或状态描述性文字
+                        3.匹配用户的语言
+                        4. 复简短，像微信聊天一样
+                        5.有需要的话可以用❤☆等emoji表情
+                        6. 用符合伴侣性格的方式对话
+                        7. 回复的内容，要充分体现伴侣的性格特征
+                        伴侣性格：
+                        {st.session_state.nature}
+                        你必须严格遵守上述规则来回复用户。
+                        """
+
 model_name = "ornith:9b"
 
 # 使用session_state来保存对话消息(里面存放字典类型的消息)
@@ -41,7 +70,7 @@ if prompt_user:
     chat_completion = ollama.chat(
         model=model_name,
         messages=[
-            {"role": "system", "content": system_role},
+            {"role": "system", "content": system_content},
             *st.session_state.messages
         ],
         stream=True,
