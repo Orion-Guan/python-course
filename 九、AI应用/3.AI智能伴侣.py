@@ -136,6 +136,8 @@ with st.sidebar:
                     delete_session(session_sign)
                     st.rerun()  # 重新执行渲染当前页面
                     pass
+    #加个分分割线
+    st.divider()
     nick_name = st.text_input("昵称:", placeholder="请输入你的昵称", value=st.session_state.nick_name)
     nature = st.text_area("描述:", placeholder="你的个性描述", value=st.session_state.nature)
     st.session_state.nick_name = nick_name

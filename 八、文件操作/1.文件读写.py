@@ -1,17 +1,32 @@
 """
 一、文件读写
-步骤:
-1、打开文件
-file = open(“文件名”, “读写模式”, encoding=“编码格式”)
+1.1 相对路径(推荐): 将当前文件所在工作目录作为参考点。
+        . -----当前目录
+        .. ------当前文件所在目录的上级目录
+    绝对路径：从根目录开始。
+        例如: E:\Users\Administrator\PyCharmProjects\python-course\八、文件操作\1.文件读写.py
 
-2、读写文件
-file.read() #读取全部内容
-file.readline() #读取一行内容
-file.readlines() #读取全部行内容，返回列表，元素是每一行内容
-file.write() #写入内容
+1.2 文件操作模式:
+    r: 只读模式(默认)
+    w: 只写模式(会覆盖原有内容)
+    a: 追加模式(在文件末尾追加内容)
+    r+: 读写模式(会覆盖原有内容)
+    w+: 读写模式(会覆盖原有内容)
+    a+: 读写模式(在文件末尾追加内容)
 
-3、关闭文件
-file.close()
+
+1.3 使用步骤:
+    1、打开文件
+        file = open(“文件名”, “读写模式”, encoding=“编码格式”)
+
+    2、读写文件
+        file.read() #读取全部内容
+        file.readline() #读取一行内容
+        file.readlines() #读取全部行内容，返回列表，元素是每一行内容
+        file.write() #写入内容
+
+    3、关闭文件
+        file.close()
 
 
 二、不管文件读取中途是否出现异常，文件资源都会被正常释放
@@ -24,8 +39,6 @@ with open("Python文件操作", "r", encoding="utf-8") as file:
 import json
 json.dump(dict1, file, ensure_ascii=False, indent=2)   # ensure_ascii=False 中文正常显示，indent=2 格式化输出
 json.load(file)  # 反序列化文件中的json串为python字典对象
-
-
 
 """
 
