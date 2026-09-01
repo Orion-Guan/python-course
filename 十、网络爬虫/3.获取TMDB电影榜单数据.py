@@ -2,9 +2,12 @@ import requests
 from lxml import html
 import csv
 
+from websockets.cli import print_over_input
+
 # 定义常量
 TMDB_BASE_URL = "https://www.themoviedb.org"
-TOP_MOVIES_URL = "https://www.themoviedb.org/movie/top-rated"
+TOP_MOVIES_URL = "https://www.themoviedb.org/movie/top-rated"  # 首页电影列表
+OTHER_MOVIES_URL = "https://www.themoviedb.org/discover/movie/items"  # 其他页电影列表（每页20部电影）
 MOVIE_PATH_SAVE = "movies/movies_info.csv"
 
 
@@ -23,9 +26,9 @@ def get_info_movie(complete_url) -> dict:
     # 获取电影详情信息
     movie_names = document.xpath('//*[@id="original_header"]/div[2]/section/div[1]/h2/a/text()')
     movie_years = document.xpath('//*[@id="original_header"]/div[2]/section/div[1]/h2/span/text()')
-    movie_dates = document.xpath('//*[@id="original_header"]/div[2]/section/div[1]/div/span[2]/text()')
-    movie_types = document.xpath('//*[@id="original_header"]/div[2]/section/div[1]/div/span[3]/a/text()')
-    movie_times = document.xpath('//*[@id="original_header"]/div[2]/section/div[1]/div/span[4]/text()')
+    movie_dates = document.xpath('//*[@id="original_header"]/div[2]/section/div[1]/div/span[@class="release"]/text()')
+    movie_types = document.xpath('//*[@id="original_header"]/div[2]/section/div[1]/div/span[@class="genres"]/a/text()')
+    movie_times = document.xpath('//*[@id="original_header"]/div[2]/section/div[1]/div/span[@class="runtime"]/text()')
     movie_scores = document.xpath('//*[@id="consensus_pill"]/div/div[1]/div/div/@data-percent')
     movie_languages = document.xpath('//*[@id="media_v4"]/div/div/div[2]/div/section/div[1]/div/section[1]/p[3]/text()')
     movie_directors = document.xpath('//*[@id="original_header"]/div[2]/section/div[3]/ol/li[2]/p[1]/a/text()')
@@ -39,7 +42,7 @@ def get_info_movie(complete_url) -> dict:
         '年份': movie_years[0],
         '上映时间': movie_dates[0],
         '类型': ','.join(movie_types) if len(movie_types) > 0 else '',
-        '时常': movie_times[0],
+        '时常': movie_times[0] if movie_times is not None and len(movie_times) > 0 else '',
         '评分': movie_scores[0],
         '语言': movie_languages[0],
         '导演': movie_directors[0] if len(movie_directors) > 0 else '',
@@ -69,23 +72,35 @@ def main():
     爬虫脚本执行主入口
     :return:
     """
-    # 发请求获取响应体对象
-    print("开始获取电影列表数据...")
-    response = requests.get(TOP_MOVIES_URL, timeout=60)
-    # 解析网页获取文本对象
-    document = html.fromstring(response.text)
-    # 获取电影列表数据
-    movies_div_list = document.xpath(
-        '/html/body/div[2]/main/section/div/div/div/div[2]/div[2]/div/section/div/div/div[1]/div/div')
+    movie_info_list = []  # 存储电影信息的列表
 
-    # 遍历电影列表，获取其详细信息
-    movie_info_list = []
-    for item in movies_div_list:
-        href = item.xpath('./div/div/a/@href')
-        complete_url = TMDB_BASE_URL + href[0]
-        print(f"正在获取电影信息: {complete_url}")
-        movie_info = get_info_movie(complete_url)
-        movie_info_list.append(movie_info)
+    # 获取电影列表数据
+    for pageNo in range(1, 6):
+        # 发请求获取响应体对象
+        print(f"开始获取第{pageNo}页电影列表数据...")
+        if pageNo == 1:
+            response = requests.get(TOP_MOVIES_URL, timeout=60)
+        else:
+            data = f"air_date.gte=&air_date.lte=&certification=&certification_country=CN&debug=&first_air_date.gte=&first_air_date.lte=&include_adult=false&include_softcore=false&latest_ceremony.gte=&latest_ceremony.lte=&page={pageNo}&primary_release_date.gte=&primary_release_date.lte=&region=&release_date.gte=&release_date.lte=2027-02-28&show_me=everything&sort_by=vote_average.desc&vote_average.gte=0&vote_average.lte=10&vote_count.gte=300&watch_region=CN&with_genres=&with_keywords=&with_networks=&with_origin_country=&with_original_language=&with_watch_monetization_types=&with_watch_providers=&with_release_type=&with_runtime.gte=0&with_runtime.lte=400"
+            response = requests.post(OTHER_MOVIES_URL, data, timeout=60)
+        # 解析网页获取文本对象
+        document = html.fromstring(response.text)
+        # 获取电影列表数据
+        if pageNo == 1:
+            movies_div_list = document.xpath(
+                '/html/body/div[2]/main/section/div/div/div/div[2]/div[2]/div/section/div/div/div[1]/div/div')
+        else:
+            movies_div_list = document.xpath(f'//*[@id="page_{pageNo}"]/div/div/div')
+
+        # 遍历电影列表，获取其详细信息
+        for item in movies_div_list:
+            href = item.xpath('./div/div/a/@href')
+            if href is None or len(href) == 0:
+                continue
+            complete_url = TMDB_BASE_URL + href[0]
+            print(f"正在获取电影信息: {complete_url}")
+            movie_info = get_info_movie(complete_url)
+            movie_info_list.append(movie_info)
 
     # 将电影信息保存到csv文件中
     print("电影信息获取完成，正在保存数据...")
