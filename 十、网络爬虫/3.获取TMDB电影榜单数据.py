@@ -1,3 +1,5 @@
+import re
+
 import requests
 from lxml import html
 import csv
@@ -8,7 +10,35 @@ from websockets.cli import print_over_input
 TMDB_BASE_URL = "https://www.themoviedb.org"
 TOP_MOVIES_URL = "https://www.themoviedb.org/movie/top-rated"  # 首页电影列表
 OTHER_MOVIES_URL = "https://www.themoviedb.org/discover/movie/items"  # 其他页电影列表（每页20部电影）
-MOVIE_PATH_SAVE = "movies/movies_info.csv"
+MOVIE_PATH_SAVE = "movies/movies_info2.csv"
+
+"""
+获取年份
+"""
+getYear = lambda param: param.strip("(").strip(")")
+
+
+def getLaunchDate(param: str):
+    """
+    获取上映时间
+    :param param:
+    :return:
+    """
+    match = re.search(r"\d{4}-\d{2}-\d{2}", param.strip())
+    return match.group(0) if match else ""
+
+
+def getOften(param: str):
+    """
+    获取时常
+    :param param:
+    :return:
+    """
+    matchObj = re.search(r"(\d{1,2})h", param.strip())
+    hour = int(matchObj.group(1)) if matchObj else 0  # 获取小时
+    matchObj1 = re.search(r"(\d{1,2})m", param.strip())
+    minute = int(matchObj1.group(1)) if matchObj1 else 0  # 获取分钟
+    return hour * 60 + minute  # 返回分钟数
 
 
 def get_info_movie(complete_url) -> dict:
@@ -39,10 +69,10 @@ def get_info_movie(complete_url) -> dict:
     # 封装电影详情信息并返回
     movie_info = {
         '电影名': movie_names[0],
-        '年份': movie_years[0],
-        '上映时间': movie_dates[0],
+        '年份': getYear(movie_years[0]) if movie_years[0] else '',
+        '上映时间': getLaunchDate(movie_dates[0]) if movie_dates[0] else '',
         '类型': ','.join(movie_types) if len(movie_types) > 0 else '',
-        '时常': movie_times[0] if movie_times is not None and len(movie_times) > 0 else '',
+        '时常': getOften(movie_times[0]) if movie_times else '',
         '评分': movie_scores[0],
         '语言': movie_languages[0],
         '导演': movie_directors[0] if len(movie_directors) > 0 else '',
