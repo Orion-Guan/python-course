@@ -405,3 +405,93 @@ import re
 | `字符串$`      | 目标文本必须以指定字符串结尾       |
 | `str1 \| str2` | 目标字符串要么是 str1，要么是 str2 |
 | ()             | 分组匹配提取值                     |
+
+## 十一、pandas数据分析
+```python
+import pandas as pd
+```
+
+### 11.1 DataFrame与 Series两大对象
+- DataFrame对象: 代表表格
+- Series对象: 代表表格中的某列
+
+```python
+from operator import index
+
+import pandas as pd
+
+#创建DataFrame对象方式
+df1 = pd.DataFrame([
+    {"name": "张三", "age": 18},
+    {"name": "李四", "age": 19},
+    {"name": "王五", "age": 20}
+])
+df1
+
+df2 = pd.DataFrame({
+    "name": ["张三", "李四", "王五"],
+    "age": [18, 19, 20]
+})
+df2
+
+df3 = pd.DataFrame([
+    ['张三', 18],
+    ['李四', 19],
+    ['王五', 20]
+], columns=["name", "age"])
+df3
+
+df4 = pd.DataFrame([
+    ['张三', 18],
+    ['李四', 19],
+    ['王五', 20]
+], columns=["name", "age"], index=['a', 'b', 'c'])  # 创建DataFrame并指定索引
+df4
+
+df5 = pd.DataFrame([
+    ('张三', 18),
+    ('李四', 19),
+    ('王五', 20)
+], columns=["name", "age"])
+df5
+
+# DataFrame常用属性
+df5.index.tolist()  #表格的行索引
+
+df5.columns.tolist()  #表格表头
+
+df5.values.tolist()  #表格的值
+
+df5.size  #获取单元格个数
+
+df5.dtypes  #获取各列类型
+
+df5.shape  #获取表格数据维度(3行数, 2列数)
+
+
+
+
+
+
+
+# 创建Series对象方式
+
+s1 = pd.Series([10, 9, 23, 24])
+s1
+
+s2 = pd.Series((10, 9, 23, 24), index=['a','b','c','d'])
+s2
+
+s3 = pd.Series({'a':10, 'b':9, 'c':23, 'd':24})
+s3
+
+
+
+# Series常见属性
+s3.index.tolist()   #获取索引
+s3.values.tolist()   #获取值
+s3.size   #获取元素个数
+s3.dtype   #获取数据类型
+s3.shape  # 获取数据包维度(4行,)
+```
+
