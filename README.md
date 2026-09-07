@@ -1,5 +1,50 @@
 # Python基础速通笔记
 
+## 目录
+
+- [一、基本数据类型](#一基本数据类型)
+  - [1.1 算数运算符](#11-算数运算符)
+  - [1.2 比较运算符](#12-比较运算符)
+  - [1.3 逻辑运算符](#13-逻辑运算符)
+- [二、高级数据类型](#二高级数据类型)
+  - [2.1 list 列表](#21-list-列表)
+  - [2.2 tuple 元组](#22-tuple-元组)
+  - [2.3 set 集合](#23-set-集合)
+  - [2.4 dict 字典](#24-dict-字典)
+- [三、条件判断](#三条件判断)
+- [四、循环语句](#四循环语句)
+- [五、函数](#五函数)
+  - [5.1 函数定义](#51-函数定义)
+  - [5.2 传参方式](#52-传参方式)
+  - [5.3 全局变量与局部变量](#53-全局变量与局部变量)
+  - [5.4 函数递归调用](#54-函数递归调用)
+  - [5.5 lambda 表达式](#55-lambda-表达式)
+- [六、异常处理](#六异常处理)
+- [七、模块与包](#七模块与包)
+  - [7.1 模块](#71-模块)
+  - [7.2 包](#72-包)
+  - [7.3 第三方包管理](#73-第三方包管理)
+- [八、类与对象](#八类与对象)
+- [九、文件操作](#九文件操作)
+  - [9.1 操作普通文件](#91-操作普通文件)
+  - [9.2 操作 JSON 串](#92-操作-json-串)
+  - [9.3 操作 CSV 文件](#93-操作-csv-文件)
+- [十、正则表达式](#十正则表达式)
+  - [10.1 常用方法](#101-常用方法)
+  - [10.2 模式规则](#102-模式规则)
+  - [10.3 匹配次数](#103-匹配次数)
+- [十一、数据分析](#十一数据分析)
+  - [11.1 Pandas数据处理工具](#111-pandas数据处理工具)
+    - [11.1.1 DataFrame与Series两大对象](#1111-dataframe与series两大对象)
+    - [11.1.2 数据读写](#1112-数据读写)
+    - [11.1.3 数据查看&选择&过滤](#1113-数据查看选择过滤)
+    - [11.1.4 数据清洗](#1114-数据清洗)
+    - [11.1.5 数据排序](#1115-数据排序)
+    - [11.1.6 数据分组](#1116-数据分组)
+  - [11.2 Matplotlib数据可视化图表工具](#112-matplotlib数据可视化图表工具)
+    - [11.2.1 折线图](#1121-折线图)
+    - [11.2.2 柱状图与饼图](#1122-柱状图与饼图)
+
 ---
 
 ## 一、基本数据类型
@@ -406,12 +451,20 @@ import re
 | `str1 \| str2` | 目标字符串要么是 str1，要么是 str2 |
 | ()             | 分组匹配提取值                     |
 
-## 十一、pandas数据分析
+---
+
+## 十一、数据分析
+
+> 以下进入数据分析领域，需要 `pandas` 和 `matplotlib` 两个第三方库，可通过 `pip install pandas matplotlib` 安装。
+
+### 11.1 Pandas数据处理工具
+
 ```python
 import pandas as pd
 ```
 
-### 11.1 DataFrame与 Series两大对象
+#### 11.1.1 DataFrame与Series两大对象
+
 - DataFrame对象: 代表表格
 - Series对象: 代表表格中的某列
 
@@ -495,3 +548,197 @@ s3.dtype   #获取数据类型
 s3.shape  # 获取数据包维度(4行,)
 ```
 
+#### 11.1.2 数据读写
+
+- read_xxx("文件路径")：读取文件获取DataFrame对象。如: read_csv, read_excel
+- to_xxx("保存到的文件路径")：保存文件到本地目录 如: to_csv, to_excel
+
+#### 11.1.3 数据查看&选择&过滤
+
+##### 11.1.3.1 数据查看
+
+- head(行数) ------查看前几行
+- tail(行数) ------查看后几行
+- describe() ------查看表格数值列统计信息
+- info() ----------查看表结构
+
+##### 11.1.3.2 选择数据
+
+###### 选择列
+
+- df['列名'] --------查看某一列
+- df[['列名1','列名2']] --------查看多列
+
+###### 选择行(行切片)
+
+- df.iloc[start:end:step] -------按行切片，不包含end行(tip: 表格行号固定从0开始，不同索引列)
+- df.loc[start:emd:step] --------按索引列切片，包含end行
+
+##### 11.1.3.3 过滤数据
+
+语法: df[条件表达式]
+
+```python
+示例: df[(df['单价'] >= 100) & (df['类别'].isin(['类别1','类别2',...]))]   # 筛选出单价大于等于100的数据，且类别是类别1或类别2的数据
+```
+
+#### 11.1.4 数据清洗
+
+##### 空值处理
+
+- isnull() -----查看表格是否有空值
+- dropna() -----默认删除空值所在行，也可以指定参数删除空值所在列
+- fillna("填充值") -----按指定参数填充空值
+- ffill() -------使用空值所在的上行列的值填充空值
+- bfill() -------使用空值所在的下行列的值填充空值
+
+##### 重复值处理
+
+- duplicated() -----默认查看整行是否有重复值，也可以参数指定查看某列是否有重复值
+- drop_duplicates()-----默认只保留首行，也可指定参数设置删除规则
+
+##### 异常值处理
+
+- df[筛选条件] ----查看异常数据
+- df['列名'].str.replace('/','-') -----处理替换某列的异常值
+
+#### 11.1.5 数据排序
+
+```python
+#先根据上映时间升序排序，相同的部分在根据评分降序
+df.sort_values(["上映时间","评分"],ascending=[True,False])
+```
+
+#### 11.1.6 数据分组
+
+```python
+import pandas as pd
+df = pd.read_csv('data/movies_info3.csv', nrows=50)
+
+# 求取每个年份的电影时常之和
+df.groupby('年份')['时常'].sum()
+
+# 获取每年电影评分的最大值
+df.groupby('年份')['评分'].max()
+
+# 获取每年电影评分的最小值
+df.groupby('年份')['评分'].min()
+
+# 获取每年电影的数量
+df.groupby('年份')['电影名'].count()
+
+# 获取每年电影评分的平均值
+df.groupby('年份')['评分'].mean()
+
+# 获取每年电影评分的最大值、最小值、平均值
+df.groupby('年份')['评分'].agg(['min', 'max', 'mean'])
+
+# 获取每年电影时常的最大值，电影评分的平均值
+df.groupby('年份').agg({'时常':'max', '评分':'mean'})
+```
+
+---
+
+### 11.2 Matplotlib数据可视化图表工具
+
+![img.png](十二、Pandas数据分析/data/img.png)
+
+#### 11.2.1 折线图
+
+```python
+# 导入matplotlib包下的 pyplot 模块，并使用 plt 简写
+import matplotlib.pyplot as plt
+import random
+
+#目标： 绘制一个折线图
+
+#准备数据
+x_axis = [item for item in range(0,25)]
+y_axis = [random.randint(0,50) for item in range(0,25)]
+y_axis_2 = [random.randint(0,50) for item in range(0,25)]
+
+#设置画布宽高
+plt.figure(figsize = (10,4))
+
+#绘制折线
+plt.plot(x_axis,y_axis,label = "河南")
+plt.plot(x_axis,y_axis_2,label = "浙江")
+
+#设置标题
+plt.title("24小时温度变化")
+
+#分别设置x轴和y轴的标签
+plt.rcParams['font.sans-serif'] = ['SimHei'] #设置字体
+plt.xlabel("时间")
+plt.ylabel("温度")
+
+# 设置x轴与y轴的刻度
+plt.xticks(x_axis)
+plt.yticks(range(0,51,5))
+
+#设置网格线
+plt.grid( linestyle='--', alpha = 0.5)
+
+#设置图例
+plt.legend()
+```
+
+#### 11.2.2 柱状图与饼图
+
+![2026年河南小麦产量.png](十二、Pandas数据分析/data/2026年河南小麦产量.png)
+
+```python
+from matplotlib.axes import Axes
+import matplotlib.pyplot as plt
+
+# 设置中文字体
+plt.rcParams['font.sans-serif'] = ['SimHei']
+
+# 创建子图: figure 画布对象，axes数组子图对象
+figure, axes = plt.subplots(nrows=1, ncols=2, figsize= (17, 3)) # 创建1行2列的子图，图形大小为10x5
+
+#准备数据
+countries = ['中国', '美国', '日本', '韩国', '法国', '德国', '英国', '俄罗斯', '加拿大', '澳大利亚']
+oil_production = [445.3, 310.9, 244.6, 223.4, 147.6, 141.6, 124.1, 102.6, 85.7, 74.8]
+
+#获取第一个子图对象
+axes1:Axes = axes[0]
+
+#绘制柱状图
+axes1.bar(countries, oil_production, color='green', width=0.6)
+
+#设置x轴和y轴标签
+axes1.set_xlabel('国家')
+axes1.set_ylabel('原油产量(万桶)')
+
+#设置网格线
+axes1.grid(linestyle='--', alpha=0.2)
+
+#设置标题
+axes1.set_title('2026年全球原油产量')
+
+
+
+
+#操作第二个子图
+axes2:Axes = axes[1]
+
+#准备数据
+wheat_yield = [14.51, 14.09, 3.4, 2.83, 2.51, 2.33, 2.12]
+region = ['周口','商丘','南阳','信阳','驻马店','漯河','开封']
+
+#绘制饼图。设置autopct参数，显示每个扇区的百分比
+axes2.pie(wheat_yield, labels=region, autopct='%1.1f%%')
+
+#设置标题
+axes2.set_title('2026年河南小麦产量')
+
+#设置图例. loc: 图例位置，ncol: 图例列数，bbox_to_anchor: 图例位置偏移量(0.5控制水平位置，-0.3控制垂直位置为下移)
+plt.legend(loc='lower center', ncol=4, bbox_to_anchor=(0.5, -0.3))
+
+#保存图片
+plt.savefig('../data/2026年河南小麦产量.png')
+
+#显示图形
+plt.show()
+```
