@@ -25,6 +25,9 @@
   - [7.2 包](#72-包)
   - [7.3 第三方包管理](#73-第三方包管理)
 - [八、类与对象](#八类与对象)
+  - [8.1 封装](#81-封装)
+  - [8.2 继承](#82-继承)
+  - [8.3 多态](#83-多态)
 - [九、文件操作](#九文件操作)
   - [9.1 操作普通文件](#91-操作普通文件)
   - [9.2 操作 JSON 串](#92-操作-json-串)
@@ -277,8 +280,7 @@ try:
 except Exception as error:
     处理异常代码块（try 中的代码块抛出异常后执行此方法）
 finally:
-    释放资源代码块（不管
-    try 中是否抛出异常都会执行）
+    释放资源代码块（不管 try 中是否抛出异常都会执行）
 ```
 
 ---
@@ -403,11 +405,37 @@ class 子类名(父类名1,父类名2,父类名3):
   5、object类的方法
 
 ### 8.3 多态
+调用同一个函数，传递的参数对象不同，函数的执行结果也不同（Java中的多态依赖继承+重写，而Python中的多态不依赖继承，只要不同类的对象有相同方法即可（鸭子类型-->类似Java中的泛型）
+>如：定义函数时，参数类型指定为父类类型，在执行的时候传入不同的子类对象，就具有不同的形态
+```python
+class Car(object):
+    def __init__(self, make, model, year):
+        self.make = make
+        self.model = model
+        self.year = year
 
 
+class ElectricCar(Car):
+    def __init__(self, make, model, year):
+        super().__init__(make, model, year)
 
 
+class FuelCar(Car):
+    def __init__(self, make, model, year):
+        super().__init__(make, model, year)
 
+
+def info(car: Car):
+    print(car.__dict__)  # 打印对象的属性字典
+
+
+if __name__ == '__main__':
+    """
+    多态的测试(相同info方法，不同结果)
+    """
+    info(FuelCar('奔驰', '红色', 120))      # {'make': '奔驰', 'model': '红色', 'year': 120}
+    info(ElectricCar('特斯拉', '白色', 120))     # {'make': '特斯拉', 'model': '白色', 'year': 120}
+```
 
 ## 九、文件操作
 
