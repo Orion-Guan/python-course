@@ -1,0 +1,35 @@
+[
+  {
+    "member_id": "O001",
+    "name": "张三",
+    "pwd": "123456"
+  },
+  {
+    "member_id": "O002",
+    "name": "李四",
+    "pwd": "123456"
+  },
+  {
+    "member_id": "O003",
+    "name": "王五",
+    "pwd": "123456"
+  },
+  {
+    "member_id": "V001",
+    "name": "赵六",
+    "pwd": "654321",
+    "vip_level": 1
+  },
+  {
+    "member_id": "V002",
+    "name": "孙七",
+    "pwd": "654321",
+    "vip_level": 2
+  },
+  {
+    "member_id": "V003",
+    "name": "周八",
+    "pwd": "654321",
+    "vip_level": 3
+  }
+]
