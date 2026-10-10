@@ -56,7 +56,7 @@ class Book:
         return True
 
 
-# 会员类，继承抽象基类ABC
+# 会员类，继承抽象基类ABC， 抽象类不能被实例化，只能被子类继承，用于定义规范，让子类实现抽象方法
 class Member(ABC):
 
     def __init__(self, member_id, name, pwd):
@@ -79,7 +79,7 @@ class Member(ABC):
         """
         # 会员不能重复借阅同样的书
         if book in self.__books:
-            print(f"会员已借阅该图书:{book}")
+            print(f"会员已借阅该图书:{book.title}")
             return False
 
         # 学生会员借阅的图书数量不能超过规则上限(普通会员3本，VIP会员=6+VIP等级)
@@ -123,6 +123,20 @@ class Member(ABC):
         :return: 会员最大借阅图书数量
         """
         pass
+
+    def get_pwd(self):
+        """
+        获取会员密码(私有属性get方法)
+        :return: 会员密码
+        """
+        return self.__pwd
+
+    def get_books(self):
+        """
+        获取会员已借阅的图书列表(私有属性get方法)
+        :return: 会员已借阅的图书列表
+        """
+        return self.__books
 
 
 # 普通会员类
@@ -181,6 +195,7 @@ class LibrarySystem:
             books = json.load(f)
             for book in books:
                 self.books[book['book_id']] = Book(**book)  # * 把可迭代对象拆成位置参数，** 把字典拆成关键字参数
+            print("图书信息加载完成。")
 
     def __load_members(self):
         """
@@ -195,9 +210,144 @@ class LibrarySystem:
                     self.members[member['member_id']] = OrdinaryMember(**member)
                 elif member['member_id'].startswith('V'):
                     self.members[member['member_id']] = VIPMember(**member)
+            print("会员信息加载完成。")
+
+    def login(self):
+        """
+        登录系统
+        :return: True   登录成功
+        """
+        print("\n【欢迎来到登录页面】")
+
+        while True:
+            member_id = input("请输入会员卡号:")
+            # 校验会员卡号
+            if member_id is None or member_id not in self.members:
+                print("登录失败！会员卡号不存在。")
+                continue
+
+            # 校验密码
+            while True:
+                pwd = input("请输入会员密码:")
+                member: Member = self.members[member_id]
+                if None is member or member.get_pwd() != pwd:
+                    print("登录失败！密码错误。")
+                    continue
+                break
+
+            self.login_member = member
+            print(f"登录成功！欢迎{member.name}。")
+            return True
+
+    def borrowing_books(self):
+        """
+        借阅图书
+        :return: None
+        """
+        print("\n【欢迎来到借阅页面】")
+
+        # 展示图书馆所有图书
+        for book in self.books.values():
+            print(f"编号: {book.book_id}, 标题: {book.title}, 作者: {book.author}, 总数量: {book.total_num}, 可借数量: {book.get_available_num()}")
+
+        # 获取用户选择的图书编号
+        book_id = input("请输入图书编号:")
+
+        #判断用户输入是否有误
+        if book_id is None or book_id not in self.books:
+            print("借阅失败！图书编号不存在。")
+            return
+
+        #开始借书
+        if self.login_member:
+            self.login_member.borrowing_book(self.books[book_id])
+        else:
+            print("借阅失败！请先登录。")
+            return
+
+    def returning_books(self):
+        """
+        归还图书
+        :return: None
+        """
+        print("\n【欢迎来到归还页面】")
+
+        if not self.login_member:
+            print("归还失败！请先登录。")
+            return
+
+        # 展示用户已借阅的图书
+        if len(self.login_member.get_books()) < 1:
+            print("归还失败！您当前没有借阅任何图书。")
+            return
+
+        print("您已借阅的图书如下:")
+        for book in self.login_member.get_books():
+            print(f"编号: {book.book_id}, 标题: {book.title}")
+
+        # 获取用户选择的图书编号
+        book_id = input("请输入预归还的图书编号:")
+        if book_id is None or book_id not in {bookObj.book_id for bookObj in self.login_member.get_books()}:
+            print("归还失败！图书编号不存在。")
+            return
+
+        #归还图书
+        self.login_member.returning_book(self.books[book_id])
+
+    def query_borrowing(self):
+        """
+        查询借阅
+        :return: None
+        """
+        print("\n【欢迎来到查询页面】")
+        if not self.login_member:
+            print("查询失败！请先登录。")
+            return
+
+        if len(self.login_member.get_books()) < 1:
+            print("空空如也~")
+            return
+
+        print("您已借阅的图书如下:")
+        for book in self.login_member.get_books():
+            print(f"编号: {book.book_id}, 标题: {book.title}, 作者: {book.author}")
+
+    def run(self):
+        """
+        运行系统
+        :return: None
+        """
+
+        # 登录系统
+        if not self.login():
+            print("登录失败，程序退出。")
+            return
+
+        # 显示功能菜单
+        while True:
+            print(f"\n{'*' * 10} 欢迎来到图书借阅系统 {'*' * 10}")
+            # 显示功能菜单
+            print("\n1. 借阅图书")
+            print("2. 归还图书")
+            print("3. 查询借阅")
+            print("5. 退出系统")
+
+            # 获取用户选择
+            choice = input("请输入你的选择:")
+            match choice:
+                case "1":
+                    self.borrowing_books()
+                case "2":
+                    self.returning_books()
+                case "3":
+                    self.query_borrowing()
+                case "5":
+                    print("退出系统，程序结束。")
+                    return
+                case _:
+                    print("无效的选择，请重新输入")
 
 
 if __name__ == '__main__':
     library_system = LibrarySystem()
-    print(library_system.books)
-    print(library_system.members)
+    library_system.run()
