@@ -238,6 +238,37 @@ def chat(session_context: SessionContext) -> Result:
     return Result(code=200, message="聊天成功", data=ai_response)  # fastapi会自动将对象序列化为json格式
 
 
+@app.get("/api/sessions")
+def getSessionList() -> Result:
+    """
+    获取会话列表接口
+    :return: 会话列表
+    """
+    # 1. 从文件中读取会话列表
+    session_list = os.listdir("sessions")
+    session_list = [session_id_dir.split(".")[0] for session_id_dir in session_list]
+    session_list.sort(reverse=True)
+
+    # 2. 返回会话列表
+    return Result(code=200, message="获取会话列表成功", data=session_list)
+
+
+@app.get("/api/sessions/{session_id}")
+def getSessionById(session_id: str) -> Result:
+    """
+    获取会话详情接口
+    fastapi路径传参：函数形参session_id必须与路径参数名{session_id}一致，否则无法获取到前端传递过来的参数值
+    :return: 会话详情
+    """
+    # 1. 从文件中读取会话详情
+    with open(f"sessions/{session_id}.json", "r", encoding="utf-8") as f:
+        session_info = json.load(f)
+
+    return Result(code=200, message="获取会话详情成功", data={session_info})
+
+
+
+
 # 测试启动服务
 if __name__ == '__main__':
     import uvicorn
