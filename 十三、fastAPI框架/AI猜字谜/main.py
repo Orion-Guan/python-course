@@ -22,8 +22,26 @@
 3.4 fastapi如何将后端服务的对象数据序列化为json格式返回给前端？
     fastapi会自动将对象序列化为json格式，无需手动处理。
 
+3.5 python中使用什么来专门记录日志？
+    python中使用logging模块来专门记录日志。
+
+    import logging  # 导入内置的logging专门用于日志记录的模块
+    # 配置日志基本信息
+    logging.basicConfig(
+        level=logging.INFO,  # 配置控制台只打印代码中的INFO级别及以上的日志
+        format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",  # 日志格式: 时间 - 日志级别(warning、info、debug、error、fatal--->从低到高) - 文件名:行号 - 消息
+    )
+
+3.6 fastapi如何捕获所有接口的异常信息并返回给前端页面？
+    可以使用 "全局异常处理器" 来捕获所有接口的异常信息并返回给前端页面。
+    @app.exception_handler(Exception)
+    def exception_handler(request: Request, exc: Exception):
+        logging.error(f"异常请求: {request.url}, 异常信息: {exc}")
+        return JSONResponse(content={"code": 500, "message": f"{exc}", "data": None})  # 必须返回JSONResponse对象
 
 """
+
+
 # 导入fastAPI框架
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
@@ -32,9 +50,18 @@ import datetime
 import json
 import os
 from typing import Any
-
 from openai import OpenAI
 from pydantic import BaseModel
+import logging  # 导入内置的logging专门用于日志记录的模块
+from fastapi.responses import JSONResponse  # 导入JSONResponse类
+from fastapi import Request  # 导入Request类
+
+
+# 配置日志基本信息
+logging.basicConfig(
+    level=logging.INFO,  # 配置控制台只打印代码中的INFO级别及以上的日志
+    format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",  # 日志格式: 时间 - 日志级别(warning、info、debug、error、fatal--->从低到高) - 文件名:行号 - 消息
+)
 
 # 创建fastapi应用实例
 app = FastAPI(title="AI猜字谜", version="1.0")
@@ -47,7 +74,7 @@ app.mount("/static", StaticFiles(directory="static"), name="staticFiles")
 class Result(BaseModel):
     code: int
     message: str
-    data: Any
+    data: Any = None  # 默认值为None，如果不需要返回数据给前端，则可以不传
 
 
 # 定义会话上下文类
@@ -207,7 +234,7 @@ def chat(session_context: SessionContext) -> Result:
         api_key='ollama',  # 本地部署的AI模型不需要api_key
     )
 
-    print(f"调用AI大模型发送的消息---->: {ai_messages}")
+    logging.info(f"调用AI大模型发送的消息---->: {ai_messages}")
 
     chat_completion = client.chat.completions.create(
         model=MODEL_NAME,
@@ -219,7 +246,7 @@ def chat(session_context: SessionContext) -> Result:
     # 5. 提取AI回复
     ai_response = chat_completion.choices[0].message.content
 
-    print(f"<-----AI回复: {ai_response}")
+    logging.info(f"<-----AI回复: {ai_response}")
 
     # 6. 保存AI回复到会话历史
     ai_messages.append({"role": "assistant", "content": ai_response})
@@ -228,7 +255,7 @@ def chat(session_context: SessionContext) -> Result:
     ai_messages.pop(0)
 
     # 保存会话信息到文件
-    print(f"保存会话信息到本地文件: {ai_messages}")
+    logging.info(f"保存会话信息到本地文件: {ai_messages}")
 
     with open(f"sessions/{session_context.session_id}.json", "w", encoding="utf-8") as f:
         session_info["messages"] = ai_messages  # 替换字典messages键值中的会话历史为最新上下文
@@ -260,12 +287,40 @@ def getSessionById(session_id: str) -> Result:
     fastapi路径传参：函数形参session_id必须与路径参数名{session_id}一致，否则无法获取到前端传递过来的参数值
     :return: 会话详情
     """
+    logging.info(f"获取会话详情: {session_id}")
+
     # 1. 从文件中读取会话详情
     with open(f"sessions/{session_id}.json", "r", encoding="utf-8") as f:
         session_info = json.load(f)
 
-    return Result(code=200, message="获取会话详情成功", data={session_info})
+    logging.info(f"会话详情: {session_info}")
 
+    return Result(code=200, message="获取会话详情成功", data=session_info)
+
+
+@app.delete("/api/sessions/{session_id}")
+def deleteSessionById(session_id: str) -> Result:
+    """
+    删除会话接口
+    :param session_id: 会话id
+    """
+    # 1. 获取会话文件路径
+    session_file_path = f"sessions/{session_id}.json"
+
+    # 2. 删除会话文件
+    if os.path.exists(session_file_path):
+        os.remove(session_file_path)
+        return Result(code=200, message="删除会话成功")
+    else:
+        raise FileNotFoundError("会话不存在")  # 抛出文件未找到异常
+
+
+
+# 定义全局异常处理器，捕获所有未处理的异常
+@app.exception_handler(Exception)
+def exception_handler(request: Request, exc: Exception):
+    logging.error(f"异常请求: {request.url}, 异常信息: {exc}")
+    return JSONResponse(content={"code": 500, "message": f"{exc}", "data": None})  # 必须返回JSONResponse对象
 
 
 
