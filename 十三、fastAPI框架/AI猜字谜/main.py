@@ -60,6 +60,7 @@ class SessionContext(BaseModel):
 def generate_session_id() -> str:
     return datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
+
 # 定义AI模型名称
 MODEL_NAME = "ornith:9b"
 
@@ -206,6 +207,8 @@ def chat(session_context: SessionContext) -> Result:
         api_key='ollama',  # 本地部署的AI模型不需要api_key
     )
 
+    print(f"调用AI大模型发送的消息---->: {ai_messages}")
+
     chat_completion = client.chat.completions.create(
         model=MODEL_NAME,
         messages=ai_messages
@@ -214,15 +217,19 @@ def chat(session_context: SessionContext) -> Result:
     # 5. 提取AI回复
     ai_response = chat_completion.choices[0].message.content
 
+    print(f"<-----AI回复: {ai_response}")
+
     # 6. 保存AI回复到会话历史
-    messages.append({"role": "assistant", "content": ai_response})
+    ai_messages.append({"role": "assistant", "content": ai_response})
 
     # 保存的用户历史会话消息不需要系统提示词
-    messages.pop(0)
+    ai_messages.pop(0)
 
     # 保存会话信息到文件
+    print(f"保存会话信息到本地文件: {ai_messages}")
+
     with open(f"sessions/{session_context.session_id}.json", "w", encoding="utf-8") as f:
-        session_info["messages"] = messages  # 替换字典messages键值中的会话历史为最新上下文
+        session_info["messages"] = ai_messages  # 替换字典messages键值中的会话历史为最新上下文
         json.dump(session_info, f, ensure_ascii=False, indent=4)
 
     # 7. 返回AI回复给前端页面
