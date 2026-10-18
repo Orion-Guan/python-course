@@ -211,7 +211,9 @@ def chat(session_context: SessionContext) -> Result:
 
     chat_completion = client.chat.completions.create(
         model=MODEL_NAME,
-        messages=ai_messages
+        messages=ai_messages,
+        stream=False,   # 关闭流式输出
+        temperature=1.5,  # 控制AI回复的创造性，值越大越有创造性，值越小越有确定性
     )
 
     # 5. 提取AI回复
