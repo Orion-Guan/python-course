@@ -264,7 +264,7 @@ def getSessionById(session_id: str) -> Result:
     with open(f"sessions/{session_id}.json", "r", encoding="utf-8") as f:
         session_info = json.load(f)
 
-    return Result(code=200, message="获取会话详情成功", data={session_info})
+    return Result(code=200, message="获取会话详情成功", data=session_info)
 
 
 
