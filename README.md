@@ -282,6 +282,7 @@ try:
     代码块
 except Exception as error:
     处理异常代码块（try 中的代码块抛出异常后执行此方法）
+    raise FileNotFoundError("会话不存在")  # 抛出文件未找到异常
 finally:
     释放资源代码块（不管
     try 中是否抛出异常都会执行）
@@ -579,6 +580,72 @@ import re
 | ()              | 分组匹配提取值                     |
 
 ---
+
+
+
+## 十一、AI应用
+
+### 11.1 大模型部署
+
+部署方式：
+
+- 本地部署：Ollama部署工具（Ollama是部署开源大模型到本地电脑并运行和管理大模型的工具。）
+
+  1、官网下载地址: https://ollama.com/download/OllamaSetup.exe
+
+  2、自定义安装路径（默认双击安装在C盘）
+
+  > １、在安装包所在目录打CMD,并执行: OllamaSetup.exe /DIR="D:\Program Files\Ollama"
+  >
+  > 2、设置Ollama拉取下载的大模型路径
+  >
+  > <img src="file:///C:/Users/Administrator/AppData/Local/Edraw/MindMaster/tempFile/9628/1035303de6a0/img17865332305852.png" alt="img" style="zoom:50%;" />
+  >
+  > 3、从 Ollama 官方镜像仓库下载大模型到本地: ollama pull deepseek-r1:14b
+  >
+  > 4、运行大模型（如果本地未拉取则会先从官网拉取大模型在运行）：ollama run deepseek-r1:14b
+  >
+  > 5、退出终端交互界面: /bye
+  >
+  > 6、查看本地已下载的大模型: ollama list 
+  >
+  > 7、查看正在运行的大模型：ollama ps
+  >
+  > 8、停止大模型运行：ollama stop
+  >
+  > 9、卸载大模型：ollama rm
+
+- 官方开发API接口 & 云服务提供平台
+
+### 11.2 大模型调用
+
+#### 11.2.1 AI API接口调用
+
+> 调大模型的API请求体发送的消息类型： 系统提示词（给AI设定的角色和行为准则）+  用户提示词（用户实际提出的问题或指令）
+
+Ollama部署的本地大模型调用案例:
+
+![img](file:///C:/Users/Administrator/AppData/Local/Edraw/MindMaster/tempFile/9628/1035303de6a0/img17865516416795.png)
+
+#### 11.2.2 会话记忆方案
+
+> 背景： 由于调用大模型的API接口是基于http无状态协议的，因此每次向大模型提问调其接口，大模型是不知道之前与用户的交互的信息背景的。这样就导致用户在基于之前会话信息向大模型发送提问调接口时，大模型不知道用户具体问的是啥。
+
+![img](file:///C:/Users/Administrator/AppData/Local/Edraw/MindMaster/tempFile/9628/1035303de6a0/img17865485121574.png)
+
+解决方法：每次向大模型提问调接口时，在消息体中都累加携带之前与大模型交互发起的提问以及大模型上次回复的消息即会话上下文信息，这样在每次调大模型的接口时，他就能基于用户之前的提问等上下文信息给出回答（滚雪球方案）。
+
+
+
+### 11.3 Prompt提示词工程
+
+> 提示词模板： 角色 + 任务 + 规则约束边界
+
+角色能力： 给大模型设定角色与能力
+
+任务需求： 明确核心请求与任务，按步骤拆解复杂任务
+
+约束条件： 指定输出风格与语气，明确要求输出格式，提供输入输出的示例
 
 ## 十一、数据分析
 
@@ -901,3 +968,50 @@ fastapi是为python编程语言提供构建web应用API接口的Web框架，类�
     uvicorn xxxx:app --reload
     ```
 
+### 12.3 QA问答环节
+
+```python
+3.1 接口如何直接返回后端文件给前端?
+    from fastapi.responses import FileResponse
+    # 定义访问首页接口路径
+    @app.get("/")
+    def get_index():
+        return FileResponse("static/index.html")
+
+    
+3.2 如何只需要前端访问固定虚拟路径，服务端就可以映射对应的静态资源返回前端？
+    from fastapi.staticfiles import StaticFiles
+    #挂载静态资源目录(前端访问“/static/**”下的路径，系统将映射到“static”目录下，查找对应资源)
+    app.mount("/static", StaticFiles(directory="static"), name="staticFiles")
+
+    
+3.3 fastapi如何接收前端发送的json数据？
+    首先需要定义一个实体类并继承BaseModel，里面的类属性需要与前端json请求体中的参数保持一致。
+    # 定义会话上下文类
+    class SessionContext(BaseModel):
+        session_id: str
+        message: str
+
+        
+3.4 fastapi如何将后端服务的对象数据序列化为json格式返回给前端？
+    fastapi会自动将对象序列化为json格式，无需手动处理。
+
+    
+3.5 python中使用什么来专门记录日志？
+    python中使用logging模块来专门记录日志。
+
+    import logging  # 导入内置的logging专门用于日志记录的模块
+    # 配置日志基本信息
+    logging.basicConfig(
+        level=logging.INFO,  # 配置控制台只打印代码中的INFO级别及以上的日志
+        format="%(asctime)s - %(levelname)s - %(filename)s:%(lineno)d - %(message)s",  # 日志格式: 时间 - 日志级别(warning、info、debug、error、fatal--->从低到高) - 文件名:行号 - 消息
+    )
+
+    
+3.6 fastapi如何捕获所有接口的异常信息并返回给前端页面？
+    可以使用 "全局异常处理器" 来捕获所有接口的异常信息并返回给前端页面。
+    @app.exception_handler(Exception)
+    def exception_handler(request: Request, exc: Exception):
+        logging.error(f"异常请求: {request.url}, 异常信息: {exc}")
+        return JSONResponse(content={"code": 500, "message": f"{exc}", "data": None})  # 必须返回JSONResponse对象
+```
